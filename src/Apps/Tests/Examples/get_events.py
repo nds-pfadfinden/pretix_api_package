@@ -9,5 +9,5 @@ path = str(pathlib.Path(__file__).parent.resolve())
 user = Pretix_API()
 data = user.get_events()
 
-user.print_to_file(path +"\\output.json",data)
+user.print_to_file(path +"\\get_events.json",data)
 
