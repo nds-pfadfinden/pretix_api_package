@@ -27,7 +27,7 @@ class Pretix_API():
         self.s.close()
 
     def _check_response(self, response):
-        if response.status_code != 200:
+        if response.status_code not in [200,201]:
             print(response.json())
             raise ValueError(response.status_code)
         return response.json()
@@ -49,7 +49,12 @@ class Pretix_API():
             url = r["next"]
         
         return data
-          
+    
+    def get_event(self, slug):
+        r = self.s.get(f'{self.config["events_url"]}{slug}/', headers=self.authHeader)
+        return self._check_response(r)
+
+        
     def get_events(self):
         return self._handle_pagination(self.config["events_url"])
         
@@ -74,9 +79,25 @@ class Pretix_API():
             data = json.load(read_file)
         data.update(update_dict)
         
-        r = self.s.post(self.config["events_url"], data=data)
+        r = self.s.post(self.config["events_url"], data=data, headers=self.authHeader)
     
         return self._check_response(r)
+
+
+    # Patch Requests
+    
+    def change_event(self, slug,update_dict = {}):
+
+        data = self.get_event(slug)
+        data.update(update_dict)
+        
+        r = self.s.patch(self.config["events_url"], data=data, headers=self.authHeader)
+        
+        return self._check_response(r)
+
+        
+
+
 
     # output
     def print_to_file(self, file_path, data):
