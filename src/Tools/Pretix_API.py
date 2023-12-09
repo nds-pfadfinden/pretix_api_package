@@ -65,6 +65,8 @@ class Pretix_API():
     def create_event(self, file_path, update_dict = {}):
         """
         method to create Events
+        
+        can't create plugins or saleschannels
 
         Args:
             file_path (String): path to json file with object to create an event
@@ -82,20 +84,47 @@ class Pretix_API():
         r = self.s.post(self.config["events_url"], data=data, headers=self.authHeader)
     
         return self._check_response(r)
+    
+    
+    
+    def clone_event(self, event_slug, update_dict):
+        """
+        method to Clone Events
+
+        Args:
+            file_path (String): path to json file with object to create an event
+            update_dict (dict, optional): dict to update the json object.  Defaults to {}.
+
+        Returns:
+            response status
+        """
+        
+        
+        r = self.s.post(
+                        url=f'{self.config["events_url"]}{event_slug}/clone/',
+                        data=update_dict,
+                        headers=self.authHeader
+                        )
+    
+        return self._check_response(r)
 
 
     # Patch Requests
     
-    def change_event(self, slug,update_dict = {}):
+    def change_event(self, slug,data):
 
-        data = self.get_event(slug)
-        data.update(update_dict)
         
-        r = self.s.patch(self.config["events_url"], data=data, headers=self.authHeader)
+        
+        r = self.s.patch(f'{self.config["events_url"]}{slug}', data=data, headers=self.authHeader)
         
         return self._check_response(r)
 
-        
+    
+    
+    def delete_event(self,slug):
+        r = self.s.delete(self.config["events_url"], headers=self.authHeader)
+        return self._check_response(r)
+
 
 
 
