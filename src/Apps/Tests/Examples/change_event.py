@@ -4,8 +4,8 @@ from Tools.Pretix_API import Pretix_API
 
 update_dict = {
                 "name": {
-                        "de": "Neuer Toller Name"
-                        }
+                        "Yanniks Veranstaltung"
+                        },
                 }  
 
 
@@ -14,5 +14,5 @@ path = str(pathlib.Path(__file__).parent.resolve())
 
 
 user = Pretix_API()
-print(user.change_event("test1", update_dict))
+print(user.change_event("neu", update_dict))
 
