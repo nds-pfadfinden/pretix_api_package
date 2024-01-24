@@ -1,11 +1,10 @@
 import json
 
 import requests
-from decouple import config as c
 
 
 class Pretix_API():
-    def __init__(self, organizer_url = c("organizer_url"), token= c("TOKEN")):
+    def __init__(self, organizer_url : str , token: str):
         """        
         Args:
         events_url (String) -> Url for the Pretix-Organizer (default from .env file)
@@ -28,7 +27,7 @@ class Pretix_API():
 
     def _check_response(self, response):
         if response.status_code not in [200,201]:
-            #print(response.json())
+            print(response.json())
             raise ValueError(response.status_code)
         return response.json()
 
