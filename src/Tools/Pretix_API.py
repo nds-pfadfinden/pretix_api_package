@@ -28,7 +28,7 @@ class Pretix_API():
 
     def _check_response(self, response):
         if response.status_code not in [200,201]:
-            print(response.json())
+            #print(response.json())
             raise ValueError(response.status_code)
         return response.json()
 
@@ -58,8 +58,28 @@ class Pretix_API():
     def get_events(self):
         return self._handle_pagination(self.config["events_url"])
         
-    def get_orders(self, url):
-        return self._handle_pagination(url)
+    def get_orders(self, slug, content, filter_by_item_id = None):
+        orders = self._handle_pagination(self.config["events_url"] + slug+ "/orders")
+        if content == "orders":
+            return orders
+        
+        
+        positions = []
+        for  o in orders:
+            positions.extend(o["positions"])
+        if filter_by_item_id:
+            positions = list(filter(lambda a: a["item"] in filter_by_item_id, positions))
+        if content == "positions":
+            return positions
+        
+        answers = []
+        for  p in positions:
+            answers.extend(p["answers"])
+        if content == "answers":
+            return answers
+        
+        raise Exception("Error : Wrong Content")
+        
 
     # POST Requests
     def create_event(self, file_path, update_dict = {}):
@@ -111,18 +131,19 @@ class Pretix_API():
 
     # Patch Requests
     
-    def change_event(self, slug,data):
+    def change_event(self, event_slug,data):
 
+        print(f'{self.config["events_url"]}{event_slug}')
         
-        
-        r = self.s.patch(f'{self.config["events_url"]}{slug}', data=data, headers=self.authHeader)
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}', data=data, headers=self.authHeader)
         
         return self._check_response(r)
 
     
-    
-    def delete_event(self,slug):
-        r = self.s.delete(self.config["events_url"], headers=self.authHeader)
+    # Delete Requests
+
+    def delete_event(self,event_slug):
+        r = self.s.delete(f'{self.config["events_url"]}{event_slug}', headers=self.authHeader)
         return self._check_response(r)
 
 

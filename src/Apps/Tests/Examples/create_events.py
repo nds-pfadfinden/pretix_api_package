@@ -5,6 +5,8 @@ from Tools.Pretix_API import Pretix_API
 path = str(pathlib.Path(__file__).parent.resolve())
 
 update_dict = {
+        "name": "Test",
+        "slug": "test"
                 }  
 
 

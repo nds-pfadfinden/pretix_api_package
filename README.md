@@ -1,11 +1,15 @@
 # pretix_api
 
-Usefull scirpts for Pretix
+Usefull scripts for Pretix
 
 # Venv
 
-- python -m venv venv
+- ```cmd
+    python -m venv venv
+    ```
 
 # Installation
 
-- pip install -e ./src
+- ```cmd
+    pip install -e ./src
+    ```
