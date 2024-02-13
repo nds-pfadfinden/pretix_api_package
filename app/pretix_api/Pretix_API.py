@@ -27,7 +27,6 @@ class Pretix_API():
 
     def _check_response(self, response):
         if response.status_code not in [200,201]:
-            print(response.json())
             raise ValueError(response.status_code)
         return response.json()
 
@@ -41,8 +40,6 @@ class Pretix_API():
             self._check_response(r)
             data.extend(r.json()["results"])
             
-            print(data)
-
             if not r.json()["next"]:
                 break
             url = r["next"]
@@ -58,7 +55,7 @@ class Pretix_API():
         return self._handle_pagination(self.config["events_url"])
         
     def get_orders(self, slug, content, filter_by_item_id = None):
-        orders = self._handle_pagination(self.config["events_url"] + slug+ "/orders")
+        orders = self._handle_pagination(self.config["events_url"] + slug+ "/orders?include_canceled_positions=true")
         if content == "orders":
             return orders
         
@@ -131,11 +128,7 @@ class Pretix_API():
     # Patch Requests
     
     def change_event(self, event_slug,data):
-
-        print(f'{self.config["events_url"]}{event_slug}')
-        
         r = self.s.patch(f'{self.config["events_url"]}{event_slug}', data=data, headers=self.authHeader)
-        
         return self._check_response(r)
 
     
@@ -145,11 +138,3 @@ class Pretix_API():
         r = self.s.delete(f'{self.config["events_url"]}{event_slug}', headers=self.authHeader)
         return self._check_response(r)
 
-
-
-
-    # output
-    def print_to_file(self, file_path, data):
-        with open(file_path, 'w') as f:
-            json.dump(data,f, ensure_ascii=False, indent=4)
-        
