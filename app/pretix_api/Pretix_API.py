@@ -4,6 +4,7 @@ import requests
 
 
 class Pretix_API():
+    
     def __init__(self, organizer_url : str , token: str):
         """        
         Args:
@@ -21,18 +22,15 @@ class Pretix_API():
         }
         
 
-
     def __del__(self):
         self.s.close()
 
+
     def _check_response(self, response):
-        if response.status_code not in [200,201]:
-            raise ValueError(response.status_code)
+        response.raise_for_status()
         return response.json()
 
     
-    
-    # GET Requests
     def _handle_pagination(self, url):
         data = []
         while True:
@@ -46,6 +44,9 @@ class Pretix_API():
         
         return data
     
+    ### Events ###
+    # GET Requests for Events
+        
     def get_event(self, slug):
         r = self.s.get(f'{self.config["events_url"]}{slug}/', headers=self.authHeader)
         return self._check_response(r)
@@ -53,32 +54,11 @@ class Pretix_API():
         
     def get_events(self):
         return self._handle_pagination(self.config["events_url"])
-        
-    def get_orders(self, slug, content, filter_by_item_id = None):
-        orders = self._handle_pagination(self.config["events_url"] + slug+ "/orders?include_canceled_positions=true")
-        if content == "orders":
-            return orders
-        
-        
-        positions = []
-        for  o in orders:
-            positions.extend(o["positions"])
-        if filter_by_item_id:
-            positions = list(filter(lambda a: a["item"] in filter_by_item_id, positions))
-        if content == "positions":
-            return positions
-        
-        answers = []
-        for  p in positions:
-            answers.extend(p["answers"])
-        if content == "answers":
-            return answers
-        
-        raise Exception("Error : Wrong Content")
-        
-
-    # POST Requests
-    def create_event(self, file_path, update_dict = {}):
+    
+    
+    # POST Requests for Events
+    
+    def create_event(self, file_path : str, update_dict = {}):
         """
         method to create Events
         
@@ -102,8 +82,7 @@ class Pretix_API():
         return self._check_response(r)
     
     
-    
-    def clone_event(self, event_slug, update_dict):
+    def clone_event(self, event_slug : str, update_dict : dict):
         """
         method to Clone Events
 
@@ -114,8 +93,7 @@ class Pretix_API():
         Returns:
             response status
         """
-        
-        
+
         r = self.s.post(
                         url=f'{self.config["events_url"]}{event_slug}/clone/',
                         data=update_dict,
@@ -123,18 +101,60 @@ class Pretix_API():
                         )
     
         return self._check_response(r)
-
-
-    # Patch Requests
     
-    def change_event(self, event_slug,data):
-        r = self.s.patch(f'{self.config["events_url"]}{event_slug}', data=data, headers=self.authHeader)
+    
+    # Patch Events
+    
+    def change_event(self, event_slug : str, data : dict):
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/', data=data, headers=self.authHeader)
+        return self._check_response(r)
+    
+    
+    # Delete Events
+
+    def delete_event(self, event_slug : str):
+        r = self.s.delete(f'{self.config["events_url"]}{event_slug}/', headers=self.authHeader)
         return self._check_response(r)
 
     
-    # Delete Requests
-
-    def delete_event(self,event_slug):
-        r = self.s.delete(f'{self.config["events_url"]}{event_slug}', headers=self.authHeader)
+    ### Orders ###
+    # GET Requests for Orders
+        
+        
+    def get_orders(self, slug : str, content : str, filter_by_item_id = None):
+        orders = self._handle_pagination(self.config["events_url"] + slug+ "/orders?include_canceled_positions=true")
+        if content == "orders":
+            return orders
+        
+        
+        positions = []
+        for  o in orders:
+            positions.extend(o["positions"])
+        if filter_by_item_id:
+            positions = list(filter(lambda a: a["item"] in filter_by_item_id, positions))
+        if content == "positions":
+            return positions
+        
+        answers = []
+        for  p in positions:
+            answers.extend(p["answers"])
+        if content == "answers":
+            return answers
+        
+        raise Exception("Error : Wrong Content parameter")
+        
+    
+    ### Items/Produkte ###
+    # Get Items
+    
+    def get_items(self,event_slug :str):
+        items = self._handle_pagination(self.config["events_url"] + event_slug+ "/items")
+        return items
+    
+    
+    # Patch Items
+    
+    def change_item(self, id : int, event_slug :str, update_dict : dict ):
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/items/{str(id)}/',update_dict,headers=self.authHeader)
         return self._check_response(r)
 
