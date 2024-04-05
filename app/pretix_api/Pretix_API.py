@@ -5,7 +5,7 @@ import requests
 
 class Pretix_API():
     
-    def __init__(self, organizer_url : str , token: str):
+    def __init__(self, organizer_url : str , token: str) -> None:
         """        
         Args:
         events_url (String) -> Url for the Pretix-Organizer (default from .env file)
@@ -22,8 +22,9 @@ class Pretix_API():
         }
         
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.s.close()
+        return
 
 
     def _check_response(self, response):
@@ -145,7 +146,7 @@ class Pretix_API():
         
     
     ### Items/Produkte ###
-    # Get Items
+    # GET Items
     
     def get_items(self,event_slug :str):
         items = self._handle_pagination(self.config["events_url"] + event_slug+ "/items")
@@ -161,7 +162,7 @@ class Pretix_API():
     
     ### Quotas/Kontingente ###
     
-    def get_quotas(self, event_slug : str):
+    def get_quotas(self, event_slug : str) -> list:
         quotas = self._handle_pagination(self.config["events_url"] + event_slug+  "/quotas/")
         return quotas
     
@@ -171,7 +172,31 @@ class Pretix_API():
     
     def update_quota(self, event_slug : str, quota_id :int, update_dict : dict):
         r = self.s.patch(f'{self.config["events_url"]}{event_slug}/quotas/{quota_id}/', update_dict, headers=self.authHeader)
-
         return self._check_response(r)
 
-
+    ### Invoices/Rechnungen ###
+    
+    # GET Invoices
+    
+    def get_invoices(self, event_slug : str) -> list[dict]:
+        invoices = self._handle_pagination(self.config["events_url"] + event_slug+  "/invoices/")        
+        return invoices
+    
+    
+    def download_invoice(self, event_slug : str, invoice_number : str, path : str, invoice_filename = "") -> None:
+        if invoice_filename == "":
+            invoice_filename = invoice_number
+        
+        invoice_pdf_r = self.s.get(f'{self.config["events_url"]}{event_slug}/invoices/{invoice_number}/download/',headers=self.authHeader )
+        with open(path + f"\\{invoice_filename}.pdf", "wb") as f:
+            f.write(invoice_pdf_r.content)
+            
+        return
+            
+    
+    def download_all_invoices(self, event_slug : str, path: str) -> None:
+        invoices = self.get_invoices(event_slug)
+        for invoice in invoices:
+            self.download_invoice(event_slug, invoice["number"], path)
+            
+        return
