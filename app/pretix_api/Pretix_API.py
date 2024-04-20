@@ -5,11 +5,11 @@ import requests
 
 class Pretix_API():
     
-    def __init__(self, organizer_url : str , token: str) -> None:
+    def __init__(self, organizer_url : str , api_token: str) -> None:
         """        
         Args:
         events_url (String) -> Url for the Pretix-Organizer (default from .env file)
-        token (String) -> API Token for the Pretix-Organizer (default from .env file)
+        api_token (String) -> API Token for the Pretix-Organizer (default from .env file)
         """
 
         self.s = requests.Session()
@@ -18,7 +18,7 @@ class Pretix_API():
             'events_url' : f'{organizer_url}events/'
         }
         self.authHeader = {
-            "Authorization": f'Token {token}'
+            "Authorization": f'Token {api_token}'
         }
         
 
