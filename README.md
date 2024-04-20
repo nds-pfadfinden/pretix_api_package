@@ -28,3 +28,5 @@ setup(name="App",
 ```
 
 # Auth
+
+user = Pretix(organ)
