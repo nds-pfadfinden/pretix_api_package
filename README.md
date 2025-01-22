@@ -28,5 +28,9 @@ setup(name="App",
 ```
 
 # Auth
+[//]: <> (using a .env)
+
+user = Pretix_API(organizer_url=c("PRETIX_ORGANIZER_URL"), token=c("PRETIX_API_TOKEN"))
+
 
 user = Pretix(organ)
