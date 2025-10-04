@@ -18,8 +18,10 @@ class Pretix_API():
             'events_url' : f'{organizer_url}events/'
         }
         self.authHeader = {
-            "Authorization": f'Token {api_token}'
+            "Authorization": f'Token {api_token}',
+                    "Content-Type": "application/json"
         }
+        self.s.headers.update(self.authHeader)
         
 
     def __del__(self) -> None:
@@ -35,13 +37,13 @@ class Pretix_API():
     def _handle_pagination(self, url):
         data = []
         while True:
-            r = self.s.get(url, headers=self.authHeader)
+            r = self.s.get(url)
             self._check_response(r)
             data.extend(r.json()["results"])
             
             if not r.json()["next"]:
                 break
-            url = r["next"]
+            url = r.json()["next"]
         
         return data
     
@@ -49,7 +51,7 @@ class Pretix_API():
     # GET Requests for Events
         
     def get_event(self, slug):
-        r = self.s.get(f'{self.config["events_url"]}{slug}/', headers=self.authHeader)
+        r = self.s.get(f'{self.config["events_url"]}{slug}/')
         return self._check_response(r)
 
         
@@ -78,7 +80,7 @@ class Pretix_API():
             data = json.load(read_file)
         data.update(update_dict)
         
-        r = self.s.post(self.config["events_url"], data=data, headers=self.authHeader)
+        r = self.s.post(self.config["events_url"], json=data)
     
         return self._check_response(r)
     
@@ -97,8 +99,7 @@ class Pretix_API():
 
         r = self.s.post(
                         url=f'{self.config["events_url"]}{event_slug}/clone/',
-                        data=update_dict,
-                        headers=self.authHeader
+                        json=update_dict
                         )
     
         return self._check_response(r)
@@ -107,14 +108,14 @@ class Pretix_API():
     # Patch Events
     
     def change_event(self, event_slug : str, data : dict):
-        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/', data=data, headers=self.authHeader)
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/', json=data)
         return self._check_response(r)
     
     
     # Delete Events
 
     def delete_event(self, event_slug : str):
-        r = self.s.delete(f'{self.config["events_url"]}{event_slug}/', headers=self.authHeader)
+        r = self.s.delete(f'{self.config["events_url"]}{event_slug}/')
         return self._check_response(r)
 
     
@@ -156,7 +157,7 @@ class Pretix_API():
     # Patch Items
     
     def change_item(self, id : int, event_slug :str, update_dict : dict ):
-        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/items/{str(id)}/',update_dict,headers=self.authHeader)
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/items/{str(id)}/',json=update_dict)
         return self._check_response(r)
     
     
@@ -167,11 +168,11 @@ class Pretix_API():
         return quotas
     
     def create_quota(self, event_slug: str, data : dict):
-        r = self.s.post(f'{self.config["events_url"]}{event_slug}/quotas/' ,data,headers=self.authHeader )
+        r = self.s.post(f'{self.config["events_url"]}{event_slug}/quotas/' ,json=data )
         return self._check_response(r)
     
     def update_quota(self, event_slug : str, quota_id :int, update_dict : dict):
-        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/quotas/{quota_id}/', update_dict, headers=self.authHeader)
+        r = self.s.patch(f'{self.config["events_url"]}{event_slug}/quotas/{quota_id}/', json=update_dict)
         return self._check_response(r)
 
     ### Invoices/Rechnungen ###
@@ -187,7 +188,7 @@ class Pretix_API():
         if invoice_filename == "":
             invoice_filename = invoice_number
         
-        invoice_pdf_r = self.s.get(f'{self.config["events_url"]}{event_slug}/invoices/{invoice_number}/download/',headers=self.authHeader )
+        invoice_pdf_r = self.s.get(f'{self.config["events_url"]}{event_slug}/invoices/{invoice_number}/download/' )
         with open(path + f"\\{invoice_filename}.pdf", "wb") as f:
             f.write(invoice_pdf_r.content)
             
